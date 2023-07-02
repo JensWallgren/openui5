@@ -1,9 +1,0 @@
-<mvc:View
-		xmlns:mvc="sap.ui.core.mvc"
-		xmlns:uxap="sap.uxap"
-		xmlns:testMappingBlocks="sap.uxap.testblocks.modelMappingBlock">
-
-	<testMappingBlocks:ModelMappingBlock id="block">
-		<uxap:ModelMapping externalModelName="jsonModel" externalPath="/Employee" internalModelName="Contact"/>
-	</testMappingBlocks:ModelMappingBlock>
-</mvc:View>
