@@ -1,45 +1,13 @@
-![openui5](https://openui5.org/images/OpenUI5_new_big_side.png)
-=======
-
-[OpenUI5. Build Once. Run on any device.](https://openui5.org)
-
-[![REUSE status](https://api.reuse.software/badge/github.com/SAP/openui5)](https://api.reuse.software/info/github.com/SAP/openui5)
-
-
-What is it?
+Goals
 -----------
-OpenUI5 lets you build enterprise-ready web applications, responsive to all devices, running on almost
-any browser of your choice. It's based on JavaScript and follows web standards.
-It eases your development with a client-side HTML5 rendering library including a rich set of controls
-and supports data binding to different data models (JSON, XML and OData).
+Create a minimal version of UI5.
 
-And... it's free and open source: OpenUI5 is licensed under the Apache License, Version 2.0 - see [LICENSE.txt](LICENSE.txt).
-It also contains third-party open source modules. See the list and respective licenses in [THIRDPARTY.txt](THIRDPARTY.txt).
-Third-party module license information is also available in machine-readable format in the [.reuse/dep5](.reuse/dep5) file.
+- Make UI5 loadable via static file hosting. Right now there's an entire system where UI5 contains sub-libraries. If you want to distribute/host the library you must do it via a specialized web server that maps files (e.g. 'ui5 serve') or you must build a distributable version of UI5. Let's cut that out. Let's just have js source code that you could just copy to a server.
+- Remove the AMD implementation. Instead simply use ES6 modules.
+- Remove the meta object framework. It feels like UI5 has its own Object framework implemented, with its' own functionality for object definitions, inheritance etc. Let's try to remove this.
+- Be ES6-first. UI5 suffers from a bit of pain due to backwards compatability. Let's make small, reasonable refactorings wherever modern JS can clean up/shorten existing UI5 code
+- See how far we can push minifying UI5. What components are *really* needed?
 
-Try it!
--------
-Check out our [control playground](https://sdk.openui5.org/controls)
-as well as a number of [sample applications](https://sdk.openui5.org/demoapps).
-
-Get it!
--------
-Go to the [**download page**](https://openui5.org/releases/) and get the complete UI5 runtime
-and the UI5 SDK containing the documentation and many example apps as well as the complete runtime.
-
-Or use [**UI5 Tooling**](https://sap.github.io/ui5-tooling/), the recommended tool for working with OpenUI5! It allows you to manage your framework dependencies and to build optimized packages for all applications, components and libraries. **Get started [here](https://sap.github.io/ui5-tooling/pages/GettingStarted/).**
-
-Get started!
-------------
-Try the [Hello World](https://openui5.org/), read
-the [Developer Guide](https://sdk.openui5.org/topic)
-and refer to the [API Reference](https://sdk.openui5.org/api).
-Use [App Templates](https://sdk.openui5.org/topic/a460a7348a6c431a8bd967ab9fb8d918) as a foundation for your developments (available in SAP Business Application Studio or here on [GitHub](https://github.com/SAP?q=openui5-worklist-app%20OR%20openui5-masterdetail-app%20OR%20openui5-sample-app)).
-Check out the [SAP Community Forum](https://answers.sap.com/tags/500983881501772639608291559920477) for 20,000+ questions and answers and
-[stackoverflow](http://stackoverflow.com/questions/tagged/sapui5) (use the tag "sapui5") to discuss code-related problems and questions. Or join the [OpenUI5 Slack](https://ui5-slack-invite.cfapps.eu10.hana.ondemand.com/). 
-
-Hack it!
---------
-You can get the sources and build UI5 on your own, please check the [documentation for the UI5 development setup](docs/developing.md). You might then want to understand how [control libraries are structured and controls are developed](docs/controllibraries.md).
-Maybe there's a bug you could analyze and fix?
-
+Non-goals
+----------
+- Productive use.
