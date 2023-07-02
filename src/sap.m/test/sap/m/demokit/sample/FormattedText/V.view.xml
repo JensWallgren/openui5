@@ -1,8 +1,0 @@
-<mvc:View
-	controllerName="sap.m.sample.FormattedText.C"
-	xmlns:mvc="sap.ui.core.mvc"
-	xmlns="sap.m">
-	<VBox class="sapUiMediumMargin">
-		<FormattedText htmlText="{/HTML}"/>
-	</VBox>
-</mvc:View>
