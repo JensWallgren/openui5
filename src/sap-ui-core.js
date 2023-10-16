@@ -1,7 +1,3 @@
-/*!
- * ${copyright}
- */
-
 (function(aScriptIncludes) {
 
 	"use strict";

@@ -1,5 +1,10 @@
+import { CalendarWeekNumbering } from "../../base/i18n/date/CalendarWeekNumbering.js";
+import { Localization } from "../../base/i18n/Localization.js";
+import { AnimationMode } from "./AnimationMode.js";
+import { Formatting } from "../../base/i18n/Formatting.js";
+import { ControlBehavior } from "./ControlBehavior.js";
 
-class Configuration {
+export class Configuration {
 	VERSION = "${version}";
 	mCompatVersion;
 
@@ -17,7 +22,7 @@ class Configuration {
 	static M_SETTINGS = {
 		"theme"                 : { type : "string",   defaultValue : "base" },
 		"language"              : { type : "Locale",   defaultValue : "en" },
-		"timezone"              : { type : "string",   defaultValue : TimezoneUtil.getLocalTimezone() },
+		"timezone"              : { type : "string",   defaultValue : "Etc/UTC" },
 		"formatLocale"          : { type : "Locale",   defaultValue : null },
 		"calendarType"          : { type : "string",   defaultValue : null },
 		"calendarWeekNumbering" : { type : CalendarWeekNumbering, defaultValue : CalendarWeekNumbering.Default},
@@ -117,7 +122,7 @@ class Configuration {
 
 	oFormatSettings;
 
-	getVersion() {
+	static getVersion() {
 		if (config._version) {
 			return config._version;
 		}
@@ -126,31 +131,26 @@ class Configuration {
 		return config._version;
 	}
 
-	getTheme = Theming.getTheme;
+	//static getTheme = Theming.getTheme;
 
-	getPlaceholder() {
-		return BaseConfig.get({
-			name: "sapUiXxPlaceholder",
-			type: BaseConfig.Type.Boolean,
-			external: true,
-			defaultValue: true
-		});
+	static getPlaceholder() {
+		return true;
 	}
 
-	getLanguage = Localization.getLanguage;
+	static getLanguage = Localization.getLanguage;
 	setLanguage = Localization.setLanguage;
 
-	getLanguageTag() {
+	static getLanguageTag() {
 		return Localization.getLanguageTag().toString();
 	}
-	getSAPLogonLanguage = Localization.getSAPLogonLanguage;
-	getTimezone = Localization.getTimezone;
+	static getSAPLogonLanguage = Localization.getSAPLogonLanguage;
+	static getTimezone = Localization.getTimezone;
 	setTimezone = Localization.setTimezone;
-	getCalendarType = Formatting.getCalendarType;
+	static getCalendarType = Formatting.getCalendarType;
 
-	getCalendarWeekNumbering = Formatting.getCalendarWeekNumbering;
+	static getCalendarWeekNumbering = Formatting.getCalendarWeekNumbering;
 
-	getRTL = Localization.getRTL;
+	static getRTL = Localization.getRTL;
 	setRTL = Localization.setRTL;
 
 	isUI5CacheOn() {
@@ -166,7 +166,7 @@ class Configuration {
 		return this;
 	}
 
-	getUI5CacheExcludedKeys() {
+	static getUI5CacheExcludedKeys() {
 		return Configuration.getValue("xx-cache-excludedKeys");
 	}
 
@@ -180,7 +180,7 @@ class Configuration {
 		return this;
 	}
 
-	getFormatLocale() {
+	static getFormatLocale() {
 		return Formatting.getLanguageTag().toString();
 	}
 
@@ -189,156 +189,112 @@ class Configuration {
 		return this;
 	}
 
-	getLanguagesDeliveredWithCore = Localization.getLanguagesDeliveredWithCore;
+	static getLanguagesDeliveredWithCore = Localization.getLanguagesDeliveredWithCore;
 
-	getSupportedLanguages = Localization.getSupportedLanguages;
+	static getSupportedLanguages = Localization.getSupportedLanguages;
 
-	getAccessibility = ControlBehavior.isAccessibilityEnabled;
+	static getAccessibility = ControlBehavior.isAccessibilityEnabled;
 
-	getAutoAriaBodyRole() {
+	static getAutoAriaBodyRole() {
 		return Configuration.getValue("autoAriaBodyRole");
 	}
 
-	getAnimation() {
+	static getAnimation() {
 		var sAnimationMode = Configuration.getAnimationMode();
 		// Set the animation to on or off depending on the animation mode to ensure backward compatibility.
 		return (sAnimationMode !== Configuration.AnimationMode.minimal && sAnimationMode !== Configuration.AnimationMode.none);
 	}
 
-	getAnimationMode = ControlBehavior.getAnimationMode;
+	static getAnimationMode = ControlBehavior.getAnimationMode;
 	setAnimationMode = ControlBehavior.setAnimationMode;
 
-	getFiori2Adaptation() {
+	static getFiori2Adaptation() {
 		return Configuration.getValue("xx-fiori2Adaptation");
 	}
 
-	getDebug() {
-		// Configuration only maintains a flag for the full debug mode.
-		// ui5loader-autoconfig calculates detailed information also for the partial debug
-		// mode and writes it to window["sap-ui-debug"].
-		// Only a value of true must be reflected by this getter
-		return window["sap-ui-debug"] === true || BaseConfig.get({name: "sapUiDebug", type: BaseConfig.Type.Boolean, external: true});
+	static getDebug() {
+		return false;
 	}
 
-	getInspect() {
+	static getInspect() {
 		return Configuration.getValue("inspect");
 	}
 
-	getOriginInfo() {
+	static getOriginInfo() {
 		return Configuration.getValue("originInfo");
 	}
 
-	getNoDuplicateIds() {
-		return BaseConfig.get({ name: "sapUiNoDuplicateIds", type: BaseConfig.Type.Boolean, defaultValue: true, external: true });
+	static getNoDuplicateIds() {
+		return true;
 	}
 
-	getTrace() {
+	static getTrace() {
 		return Configuration.getValue("trace");
 	}
 
-	getUIDPrefix() {
+	static getUIDPrefix() {
 		return Configuration.getValue("uidPrefix");
 	}
 
 
-	getDesignMode() {
-		return BaseConfig.get({
-			name: "sapUiXxDesignMode",
-			type: BaseConfig.Type.Boolean,
-			external: true,
-			freeze: true
-		});
+	static getDesignMode() {
+		return false;
 	}
 
-	getSuppressDeactivationOfControllerCode() {
-		return BaseConfig.get({
-			name: "sapUiXxSuppressDeactivationOfControllerCode",
-			type: BaseConfig.Type.Boolean,
-			external: true,
-			freeze: true
-		});
+	static getSuppressDeactivationOfControllerCode() {
+		return false;
 	}
 
-	getControllerCodeDeactivated() {
+	static getControllerCodeDeactivated() {
 		return Configuration.getDesignMode() && !Configuration.getSuppressDeactivationOfControllerCode();
 	}
 
-	getApplication() {
+	static getApplication() {
 		return Configuration.getValue("application");
 	}
 
-	getRootComponent() {
+	static getRootComponent() {
 		return Configuration.getValue("rootComponent");
 	}
 
-	getAppCacheBuster() {
-		return BaseConfig.get({name: "sapUiAppCacheBuster", type: BaseConfig.Type.StringArray, external: true, freeze: true});
+	static getAppCacheBuster() {
+		return [ "./" ];
 	}
 
-	getAppCacheBusterMode() {
-		return BaseConfig.get({name: "sapUiXxAppCacheBusterMode", type: BaseConfig.Type.String, defaultValue: "sync", external: true, freeze: true});
+	static getAppCacheBusterMode() {
+		return "sync";
 	}
 
-	getAppCacheBusterHooks() {
-		return BaseConfig.get({name: "sapUiXxAppCacheBusterHooks", type: BaseConfig.Type.Object, defaultValue: undefined, freeze: true});
+	static getAppCacheBusterHooks() {
+		return undefined;
 	}
 
-	getDisableCustomizing() {
-		return BaseConfig.get({name: "sapUiXxDisableCustomizing", type: BaseConfig.Type.Boolean});
+	static getDisableCustomizing() {
+		return true;
 	}
 
-	getViewCache() {
+	static getViewCache() {
 		return Configuration.getValue("xx-viewCache");
 	}
 
-	getPreload() {
-		// if debug sources are requested, then the preload feature must be deactivated
-		if (Configuration.getDebug() === true) {
-			return "";
-		}
-		// determine preload mode (e.g. resolve default or auto)
-		var sPreloadMode = BaseConfig.get({name: "sapUiPreload", type: BaseConfig.Type.String, defaultValue: "auto", external: true});
-		// when the preload mode is 'auto', it will be set to 'async' or 'sync' for optimized sources
-		// depending on whether the ui5loader is configured async
-		if ( sPreloadMode === "auto" ) {
-			if (window["sap-ui-optimized"]) {
-				sPreloadMode = sap.ui.loader.config().async ? "async" : "sync";
-			} else {
-				sPreloadMode = "";
-			}
-		}
-		return sPreloadMode;
+	static getPreload() {
+		return "";
 	}
 
-	getSyncCallBehavior() {
+	static getSyncCallBehavior() {
 		var syncCallBehavior = 0; // ignore
-		var mOptions = {
-			name: "sapUiXxNoSync",
-			type: BaseConfig.Type.String,
-			external: true,
-			freeze: true
-		};
-		var sNoSync = BaseConfig.get(mOptions);
-		if (sNoSync === 'warn') {
-			syncCallBehavior = 1;
-		} else {
-			mOptions.type = BaseConfig.Type.Boolean;
-			if (BaseConfig.get(mOptions)) {
-				syncCallBehavior = 2;
-			}
-		}
 		return syncCallBehavior;
 	}
 
-	getDepCache() {
-		return BaseConfig.get({name: "sapUiXxDepCache", type: BaseConfig.Type.Boolean, external: true});
+	static getDepCache() {
+		return false;
 	}
 
-	getManifestFirst() {
-		return BaseConfig.get({name: "sapUiManifestFirst", type: BaseConfig.Type.Boolean, external: true});
+	static getManifestFirst() {
+		return false;
 	}
 
-	getFlexibilityServices() {
+	static getFlexibilityServices() {
 		var vFlexibilityServices = Configuration.getValue("flexibilityServices") || [];
 
 		if (typeof vFlexibilityServices === 'string') {
@@ -359,43 +315,43 @@ class Configuration {
 		config.flexibilityServices = aFlexibilityServices.slice();
 	}
 
-	getComponentPreload() {
-		return BaseConfig.get({name: "sapUiXxComponentPreload", type: BaseConfig.Type.String, external: true}) || Configuration.getPreload();
+	static getComponentPreload() {
+		return false;
 	}
 
-	getFormatSettings() {
+	static getFormatSettings() {
 		return oFormatSettings;
 	}
 
-	getFrameOptions() {
+	static getFrameOptions() {
 		return Configuration.getValue("frameOptions");
 	}
 
-	getWhitelistService() {
+	static getWhitelistService() {
 		return Configuration.getAllowlistService();
 	}
 
-	getAllowlistService() {
+	static getAllowlistService() {
 		return Configuration.getValue("allowlistService");
 	}
 
-	getFileShareSupport() {
+	static getFileShareSupport() {
 		return Configuration.getValue("fileShareSupport") || undefined;
 	}
 
-	getSupportMode() {
+	static getSupportMode() {
 		return Configuration.getValue("support");
 	}
 
-	getTestRecorderMode() {
+	static getTestRecorderMode() {
 		return Configuration.getValue("testRecorder");
 	}
 
-	getStatistics() {
+	static getStatistics() {
 		return Configuration.getStatisticsEnabled();
 	}
 
-	getStatisticsEnabled() {
+	static getStatisticsEnabled() {
 		var result = Configuration.getValue("statistics");
 		try {
 			result = result || window.localStorage.getItem("sap-ui-statistics") == "X";
@@ -405,27 +361,27 @@ class Configuration {
 		return result;
 	}
 
-	getNoNativeScroll() {
+	static getNoNativeScroll() {
 		return false;
 	}
 
-	getHandleValidation() {
+	static getHandleValidation() {
 		return Configuration.getValue("xx-handleValidation");
 	}
 
-	getHyphenation() {
+	static getHyphenation() {
 		return Configuration.getValue("xx-hyphenation");
 	}
 
-	getActiveTerminologies() {
+	static getActiveTerminologies() {
 		return BaseConfig.get({name: "sapUiActiveTerminologies", type: BaseConfig.Type.StringArray, defaultValue: undefined, external: true});
 	}
 
-	getSecurityTokenHandlers() {
+	static getSecurityTokenHandlers() {
 		return Configuration.getValue("securityTokenHandlers").slice();
 	}
 
-	getMeasureCards() {
+	static getMeasureCards() {
 		return Configuration.getValue("xx-measure-cards");
 	}
 
@@ -437,29 +393,14 @@ class Configuration {
 		config.securityTokenHandlers = aSecurityTokenHandlers.slice();
 	}
 
-	getBindingSyntax() {
-		var sBindingSyntax = BaseConfig.get({
-			name: "sapUiBindingSyntax",
-			type: BaseConfig.Type.String,
-			defaultValue: "default",
-			freeze: true
-		});
-		if ( sBindingSyntax === "default" ) {
-			sBindingSyntax = (Configuration.getCompatibilityVersion("sapCoreBindingSyntax").compareTo("1.26") < 0) ? "simple" : "complex";
-		}
-		return sBindingSyntax;
+	static getBindingSyntax() {
+		return "complex";
 	}
 
-	setCore(oNewCore) {
-		// Setting the core needs to happen before init
-		// because getValue relies on oCore and is used in init
-		oCore = oNewCore;
-		init();
-	}
 
 	static getValue(sName) {
 		// Always grab the default value from M_SETTINGS
-		var oSetting = M_SETTINGS[sName];
+		var oSetting = this.M_SETTINGS[sName];
 		if (!oSetting) {
 			debugger;
 			return undefined;
@@ -493,30 +434,30 @@ class Configuration {
 
 /*
 class FormatSettings {
-	getFormatLocale() {
+	static getFormatLocale() {
 		var oLocale = Formatting.getLanguageTag();
 		return Locale._getCoreLocale(oLocale);
 	}
 
 	_set = Formatting._set;
-	getCustomUnits = Formatting.getCustomUnits;
+	static getCustomUnits = Formatting.getCustomUnits;
 	setCustomUnits = Formatting.setCustomUnits;
 	addCustomUnits = Formatting.addCustomUnits;
 
 	setUnitMappings = Formatting.setUnitMappings;
 	addUnitMappings = Formatting.addUnitMappings;
-	getUnitMappings = Formatting.getUnitMappings;
+	static getUnitMappings = Formatting.getUnitMappings;
 
-	getDatePattern = Formatting.getDatePattern;
+	static getDatePattern = Formatting.getDatePattern;
 	setDatePattern = Formatting.setDatePattern;
 
-	getTimePattern = Formatting.getTimePattern;
+	static getTimePattern = Formatting.getTimePattern;
 	setTimePattern = Formatting.setTimePattern;
 
-	getNumberSymbol = Formatting.getNumberSymbol;
+	static getNumberSymbol = Formatting.getNumberSymbol;
 	setNumberSymbol = Formatting.setNumberSymbol;
 
-	getCustomCurrencies = Formatting.getCustomCurrencies;
+	static getCustomCurrencies = Formatting.getCustomCurrencies;
 	setCustomCurrencies = Formatting.setCustomCurrencies;
 	addCustomCurrencies = Formatting.addCustomCurrencies;
 
@@ -528,21 +469,21 @@ class FormatSettings {
 
 	_setDayPeriods = Formatting._setDayPeriods;
 
-	getLegacyDateFormat = Formatting.getLegacyDateFormat;
+	static getLegacyDateFormat = Formatting.getLegacyDateFormat;
 	setLegacyDateFormat = Formatting.setLegacyDateFormat;
 
-	getLegacyTimeFormat = Formatting.getLegacyTimeFormat;
+	static getLegacyTimeFormat = Formatting.getLegacyTimeFormat;
 	setLegacyTimeFormat = Formatting.setLegacyTimeFormat;
 
-	getLegacyNumberFormat = Formatting.getLegacyNumberFormat;
+	static getLegacyNumberFormat = Formatting.getLegacyNumberFormat;
 	setLegacyNumberFormat = Formatting.setLegacyNumberFormat;
 
 	setLegacyDateCalendarCustomizing = Formatting.setLegacyDateCalendarCustomizing;
-	getLegacyDateCalendarCustomizing = Formatting.getLegacyDateCalendarCustomizing;
+	static getLegacyDateCalendarCustomizing = Formatting.getLegacyDateCalendarCustomizing;
 
 	setTrailingCurrencyCode = Formatting.setTrailingCurrencyCode;
-	getTrailingCurrencyCode = Formatting.getTrailingCurrencyCode;
+	static getTrailingCurrencyCode = Formatting.getTrailingCurrencyCode;
 
-	getCustomLocaleData = Formatting.getCustomLocaleData;
+	static getCustomLocaleData = Formatting.getCustomLocaleData;
 }
 */

@@ -1,18 +1,21 @@
+import { BaseObject } from "../base/Object.js";
+import { Element } from "./Element.js";
+import { MessageManager } from "./message/MessageManager.js";
+import { Configuration } from "./Configuration.js";
+import { ElementMetadata } from "./ElementMetadata.js";
+import { Deferred } from "../../base/util/Deferred.js";
+
 "use strict";
 
-// when the Core module has been executed before, don't execute it again
-if (sap.ui.getCore && sap.ui.getCore()) {
-	return sap.ui.getCore();
-}
-
-var _oEventProvider;
 
 function getWaitForTheme() {
 	return undefined;
 }
 
-class Core extends BaseObject {
+export class Core extends BaseObject {
 	constructor() {
+		super();
+
 		var that = this;
 
 		// when a Core instance has been created before, don't create another one
@@ -22,14 +25,10 @@ class Core extends BaseObject {
 			return sap.ui.getCore();
 		}
 
-		BaseObject.call(this);
 
-		_oEventProvider = new EventProvider();
+		//TODO:
+		//_oEventProvider = new EventProvider();
 
-		// Generate all functions from EventProvider for backward compatibility
-		["attachEvent", "detachEvent", "getEventingParent"].forEach(function (sFuncName) {
-			Core.prototype[sFuncName] = _oEventProvider[sFuncName].bind(_oEventProvider);
-		});
 
 		this.oMessageManager = MessageManager;
 		var bHandleValidation = Configuration.getHandleValidation();
@@ -46,6 +45,8 @@ class Core extends BaseObject {
 		this.mObjects = { "template": {} };
 		this.oRootComponent = null;
 
+		this.pReady = new Deferred();
+
 		// freeze Config
 		//var GlobalConfigurationProvider = new GlobalConfigurationProvider();
 		//GlobalConfigurationProvider.freeze();
@@ -54,16 +55,12 @@ class Core extends BaseObject {
 		// let Element and Component get friend access to the respective register/deregister methods
 		this._grantFriendAccess();
 
-		var sPreloadMode = Configuration.getPreload();
-
-		// This flag controls the core initialization flow.
-		// We can switch to async when an async preload is used or the ui5loader
-		// is in async mode. The latter might also happen for debug scenarios
-		// where no preload is used at all.
-		var bAsync = sPreloadMode === "async" || sap.ui.loader.config().async;
+		var bAsync = false;
 
 		// adding the following classList is done here for compatibility reasons
-		document.documentElement.classList.add("sapUiTheme-" + Theming.getTheme());
+		//TODO:
+		//document.documentElement.classList.add("sapUiTheme-" + Theming.getTheme());
+		document.documentElement.classList.add("sapUiTheme-" + "sap_horizon");
 
 		//TODO: This probably sets some css attributes that are needed for themes
 		/*
@@ -78,7 +75,6 @@ class Core extends BaseObject {
 		};
 
 		var fnContentLoadedCallback = function() {
-			oSyncPoint1.finishTask(iDocumentReadyTask);
 			document.removeEventListener("DOMContentLoaded", fnContentLoadedCallback);
 		};
 
@@ -90,12 +86,7 @@ class Core extends BaseObject {
 			document.addEventListener("DOMContentLoaded", fnContentLoadedCallback);
 		}
 
-		// sync point 2 synchronizes all library preloads and the end of the bootstrap script
-		var oSyncPoint2 = new SyncPoint("UI5 Core Preloads and Bootstrap Script", function(iOpenTasks, iFailures) {
-		});
-
-
-		jQuery.support.useFlexBoxPolyfill = false;
+		//jQuery.support.useFlexBoxPolyfill = false;
 
 		this.boot = function() {
 			if (this.bBooted) {
@@ -103,7 +94,6 @@ class Core extends BaseObject {
 			}
 			this.bBooted = true;
 			postConstructorTasks.call(this);
-			oSyncPoint2.finishTask(iBootstrapScriptTask);
 		};
 
 		function postConstructorTasks() {
@@ -123,17 +113,13 @@ class Core extends BaseObject {
 				});
 
 				if ( bAsync ) {
-					var iPreloadLibrariesTask = oSyncPoint2.startTask("preload bootstrap libraries");
 					pLibraryPreloaded.then(function() {
-						oSyncPoint2.finishTask(iPreloadLibrariesTask);
 					}, function() {
-						oSyncPoint2.finishTask(iPreloadLibrariesTask, false);
 					});
 				}
 			}
 
 			that._boot(bAsync, function() {
-				oSyncPoint1.finishTask(iCoreBootTask);
 				Measurement.end("coreBoot");
 			});
 		}
@@ -287,8 +273,8 @@ class Core extends BaseObject {
 
 
 	applyTheme(sThemeName, sThemeBaseUrl) {
-		assert(typeof sThemeName === "string", "sThemeName must be a string");
-		assert(typeof sThemeBaseUrl === "string" || typeof sThemeBaseUrl === "undefined", "sThemeBaseUrl must be a string or undefined");
+		console.assert(typeof sThemeName === "string", "sThemeName must be a string");
+		console.assert(typeof sThemeBaseUrl === "string" || typeof sThemeBaseUrl === "undefined", "sThemeBaseUrl must be a string or undefined");
 
 		if (sThemeBaseUrl) {
 			Theming.setThemeRoot(sThemeName, sThemeBaseUrl);
@@ -307,10 +293,6 @@ class Core extends BaseObject {
 	};
 
 
-	/**
-	 * Initializes the Core after the initial page was loaded
-	 * @private
-	 */
 	init() {
 
 		if (this.bInitialized) {
@@ -440,10 +422,9 @@ class Core extends BaseObject {
 				console.info("Loading Application: " + sApplication,null,METHOD);
 				sap.ui.requireSync(sApplication.replace(/\./g, "/")); // legacy-relevant: deprecated
 				var oClass = ObjectPath.get(sApplication);
-				assert(oClass !== undefined, "The specified application \"" + sApplication + "\" could not be found!");
+				console.assert(oClass !== undefined, "The specified application \"" + sApplication + "\" could not be found!");
 				var oApplication = new oClass();
-				assert(BaseObject.isA(oApplication, 'sap.ui.app.Application'), "The specified application \"" + sApplication + "\" must be an instance of sap.ui.app.Application!");
-
+				console.assert(BaseObject.isA(oApplication, 'sap.ui.app.Application'), "The specified application \"" + sApplication + "\" must be an instance of sap.ui.app.Application!");
 			}
 		}
 	};
@@ -475,28 +456,31 @@ class Core extends BaseObject {
 		this._setupRootComponent(); // @legacy-relevant: private API for 2 deprecated concepts "rootComponent" & "sap.ui.app.Application"
 		this.pReady.resolve();
 		this.bReady = true;
+
 	};
 
 	isInitialized () {
 		return this.bInitialized;
 	};
 
-	isThemeApplied = Theming.isApplied;
-
+	//TODO
+	//isThemeApplied = Theming.isApplied;
+	/*
 	Theming.attachApplied(function(oEvent) {
 		// notify the listeners via a control event
 		_oEventProvider && _oEventProvider.fireEvent(Core.M_EVENTS.ThemeChanged, BaseEvent.getParameters(oEvent));
 	});
+	*/
 
 	attachInitEvent (fnFunction) {
-		assert(typeof fnFunction === "function", "fnFunction must be a function");
+		console.assert(typeof fnFunction === "function", "fnFunction must be a function");
 		if (!this.bReady) {
 			this.pReady.promise.then(fnFunction);
 		}
 	};
 
 	attachInit (fnFunction) {
-		assert(typeof fnFunction === "function", "fnFunction must be a function");
+		console.assert(typeof fnFunction === "function", "fnFunction must be a function");
 		this.ready(fnFunction);
 	};
 
@@ -522,7 +506,7 @@ class Core extends BaseObject {
 	};
 
 	createRenderManager() {
-		assert(this.isInitialized(), "A RenderManager should be created only after the Core has been initialized");
+		console.assert(this.isInitialized(), "A RenderManager should be created only after the Core has been initialized");
 		var oRm = new RenderManager();
 		return oRm.getInterface();
 	};
@@ -573,15 +557,15 @@ class Core extends BaseObject {
 	};
 
 	placeControlAt(oDomRef, oControl) {
-		assert(typeof oDomRef === "string" || typeof oDomRef === "object", "oDomRef must be a string or object");
-		assert(oControl instanceof Interface || BaseObject.isA(oControl, "sap.ui.core.Control"), "oControl must be a Control or Interface");
+		console.assert(typeof oDomRef === "string" || typeof oDomRef === "object", "oDomRef must be a string or object");
+		console.assert(oControl instanceof Interface || BaseObject.isA(oControl, "sap.ui.core.Control"), "oControl must be a Control or Interface");
 
 		if (oControl) {
 			oControl.placeAt(oDomRef, "only");
 		}
 	}
 
-	setRoot = placeControlAt;
+	setRoot(oDomRef, oControl) { placeControlAt(oDomRef, oControl); };
 
 	createUIArea(oDomRef) {
 		if (typeof oDomRef === "string" && oDomRef === StaticArea.STATIC_UIAREA_ID) {
@@ -591,7 +575,7 @@ class Core extends BaseObject {
 	};
 
 	getUIArea(o) {
-		assert(typeof o === "string" || typeof o === "object", "o must be a string or object");
+		console.assert(typeof o === "string" || typeof o === "object", "o must be a string or object");
 
 		var sId = "";
 		if (typeof (o) == "string") {
@@ -619,11 +603,14 @@ class Core extends BaseObject {
 		_oEventProvider.detachEvent(Core.M_EVENTS.UIUpdated, fnFunction, oListener);
 	};
 
+	//TODO
+	/*
 	Rendering.attachUIUpdated(function(oEvent) {
 		_oEventProvider.fireEvent(Core.M_EVENTS.UIUpdated, oEvent.getParameters());
 	});
 
 	notifyContentDensityChanged = Theming.notifyContentDensityChanged;
+	*/
 
 	attachThemeChanged(fnFunction, oListener) {
 		// preparation for letting the "themeChanged" event be forwarded from the ThemeManager to the Core
@@ -718,10 +705,12 @@ class Core extends BaseObject {
 		_oEventProvider.detachEvent(Core.M_EVENTS.LibraryChanged, fnFunction, oListener);
 	};
 
+	/*
 	Library.attachLibraryChanged(function(oEvent) {
 		// notify registered Core listeners
 		_oEventProvider.fireEvent(Core.M_EVENTS.LibraryChanged, oEvent.getParameters());
 	});
+	*/
 
 	applyChanges() {
 		Rendering.renderPendingUIUpdates("forced by applyChanges");
@@ -746,77 +735,49 @@ class Core extends BaseObject {
 		delete this.mObjects[sType][sId];
 	};
 
+	mInstances = {};
 
-	/**
-	 * Returns the registered element with the given ID, if any.
-	 *
-	 * The ID must be the globally unique ID of an element, the same as returned by <code>oElement.getId()</code>.
-	 *
-	 * When the element has been created from a declarative source (e.g. XMLView), that source might have used
-	 * a shorter, non-unique local ID. A search for such a local ID cannot be executed with this method.
-	 * It can only be executed on the corresponding scope (e.g. on an XMLView instance), by using the
-	 * {@link sap.ui.core.mvc.View#byId View#byId} method of that scope.
-	 *
-	 * @param {sap.ui.core.ID|null|undefined} sId ID of the element to search for
-	 * @returns {sap.ui.core.Element|undefined} Element with the given ID or <code>undefined</code>
-	 * @public
-	 * @function
-	 */
-	byId = Element.registry.get;
+	register() {
+		var sId = this.getId(),
+			old = mInstances[sId];
 
-	/**
-	 * Returns the registered element for the given ID, if any.
-	 *
-	 * @param {sap.ui.core.ID|null|undefined} sId ID of the control to retrieve
-	 * @returns {sap.ui.core.Element|undefined} Element for the given ID or <code>undefined</code>
-	 * @deprecated As of version 1.1, use <code>sap.ui.core.Core.byId</code> instead!
-	 * @function
-	 * @public
-	 */
-	getControl = Element.registry.get;
+		if ( old && old !== this ) {
+			fnOnDuplicate(sId, old, this);
+			// executes only if duplicate check succeeds
+			iInstancesCount--;
+		}
 
-	/**
-	 * Returns the registered element for the given ID, if any.
-	 *
-	 * @param {sap.ui.core.ID|null|undefined} sId ID of the element to retrieve
-	 * @returns {sap.ui.core.Element|undefined} Element for the given ID or <code>undefined</code>
-	 * @deprecated As of version 1.1, use <code>sap.ui.core.Core.byId</code> instead!
-	 * @function
-	 * @public
-	 */
-	getElementById = Element.registry.get;
+		mInstances[sId] = this;
+		iInstancesCount++;
+	}
 
-	/**
-	 * Returns the registered object for the given ID, if any.
-	 *
-	 * @param {string} sType Stereotype of the object to retrieve
-	 * @param {sap.ui.core.ID|null|undefined} sId ID of the object to retrieve
-	 * @returns {sap.ui.base.ManagedObject|undefined} Object of the given type and with the given ID or undefined
-	 * @private
-	 */
+	deregister() {
+		if ( mInstances[this.getId()] ) {
+			delete mInstances[this.getId()];
+			iInstancesCount--;
+		}
+	}
+
+	// TODO: Look at ManagedObjectRegistry
+	// It adds a property called 'registry' to the the object. We haven't fixed that yet
+	registryGet(id) {
+		return id == null ? undefined : mInstances[id];
+	}
+
+	byId(id) { return this.registryGet(id); }
+	getControl(id) { return this.registryGet(id); }
+	getElementById(id) { return this.registryGet(id); }
+
 	getObject(sType, sId) {
-		assert(sId == null || typeof sId === "string", "sId must be a string when defined");
-		assert(this.mObjects[sType] !== undefined, "sType must be a supported stereotype");
+		console.assert(sId == null || typeof sId === "string", "sId must be a string when defined");
+		console.assert(this.mObjects[sType] !== undefined, "sType must be a supported stereotype");
 		return sId == null ? undefined : this.mObjects[sType] && this.mObjects[sType][sId];
 	};
 
-	/**
-	 * Returns the registered component for the given id, if any.
-	 * @param {string} sId
-	 * @return {sap.ui.core.Component} the component for the given id
-	 * @function
-	 * @public
-	 * @deprecated Since 1.95. Please use {@link sap.ui.core.Component.get Component.get} instead.
-	 */
-	getComponent = Component.registry.get;
+	//TODO: This used to be:
+	//getComponent = Component.registry.get;
+	getComponent(id) { return registryGet(id); }
 
-	/**
-	 * Returns the registered template for the given id, if any.
-	 * @param {string} sId
-	 * @return {sap.ui.core.Component} the template for the given id
-	 * @public
-	 * @deprecated Since 1.29.1 Require 'sap/ui/core/tmpl/Template' and use {@link sap.ui.core.tmpl.Template.byId Template.byId} instead.
-	 */
 	getTemplate(sId) {
 		console.warning("Synchronous loading of 'sap/ui/core/tmpl/Template'. Use 'sap/ui/core/tmpl/Template' module and" +
 			" call Template.byId instead", "SyncXHR", null, function() {
@@ -839,50 +800,18 @@ class Core extends BaseObject {
 
 	oIntervalTrigger;
 
-	/**
-	 * Registers a listener for control events.
-	 *
-	 * When called, the context of the listener (its <code>this</code>) will be bound to <code>oListener</code>
-	 * if specified, otherwise it will be bound to a dummy event provider object.
-	 *
-	 * @param {function} fnFunction Callback to be called for each control event
-	 * @param {object} [oListener] Optional context object to call the callback on
-	 * @public
-	 */
 	attachControlEvent(fnFunction, oListener) {
 		_oEventProvider.attachEvent(Core.M_EVENTS.ControlEvent, fnFunction, oListener);
 	};
 
-	/**
-	 * Unregisters a listener for control events.
-	 *
-	 * The passed function and listener object must match the ones used for event registration.
-	 *
-	 * @param {function} fnFunction Function to unregister
-	 * @param {object} [oListener] Context object on which the given function had to be called
-	 * @public
-	 */
 	detachControlEvent(fnFunction, oListener) {
 		_oEventProvider.detachEvent(Core.M_EVENTS.ControlEvent, fnFunction, oListener);
 	};
 
-	/**
-	 * Notifies the listeners that an event on a control occurs.
-	 *
-	 * @param {object} oParameters Parameters to pass along with the event, e.g. <code>{ browserEvent: jQuery.Event }</code>
-	 * @private
-	 */
 	fireControlEvent(oParameters) {
 		_oEventProvider.fireEvent(Core.M_EVENTS.ControlEvent, oParameters);
 	};
 
-	/**
-	 * Handles a control event and forwards it to the registered control event listeners.
-	 *
-	 * @param {jQuery.Event} oEvent control event
-	 * @param {string} sUIAreaId id of the UIArea that received the event
-	 * @private
-	 */
 	_handleControlEvent(/**event*/oEvent, sUIAreaId) {
 		// Create a copy of the event
 		var oEventClone = jQuery.Event(oEvent.type);
@@ -897,8 +826,8 @@ class Core extends BaseObject {
 	};
 
 	setModel(oModel, sName) {
-		assert(oModel == null || BaseObject.isA(oModel, 'sap.ui.model.Model'), "oModel must be an instance of sap.ui.model.Model, null or undefined");
-		assert(sName === undefined || (typeof sName === "string" && !/^(undefined|null)?$/.test(sName)), "sName must be a string or omitted");
+		console.assert(oModel == null || BaseObject.isA(oModel, 'sap.ui.model.Model'), "oModel must be an instance of sap.ui.model.Model, null or undefined");
+		console.assert(sName === undefined || (typeof sName === "string" && !/^(undefined|null)?$/.test(sName)), "sName must be a string or omitted");
 		var that = this,
 			oProperties;
 
@@ -952,7 +881,7 @@ class Core extends BaseObject {
 	};
 
 	getModel(sName) {
-		assert(sName === undefined || (typeof sName === "string" && !/^(undefined|null)?$/.test(sName)), "sName must be a string or omitted");
+		console.assert(sName === undefined || (typeof sName === "string" && !/^(undefined|null)?$/.test(sName)), "sName must be a string or omitted");
 		return this.oModels[sName];
 	};
 
@@ -1094,5 +1023,3 @@ class Core extends BaseObject {
 		BaseObject.prototype.destroy.call(this);
 	};
 }
-
-sap.ui.setRoot = placeControlAt;

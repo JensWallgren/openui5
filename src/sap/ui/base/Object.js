@@ -1,16 +1,27 @@
 "use strict";
 
 
-class BaseObject {
+export class BaseObject {
+	constructor() {}
+	destroy() {}
+
+	getInterface() {
+		var oInterface = new BaseObject._Interface(this, this.getMetadata().getAllPublicMethods());
+		this.getInterface = function() {
+			return oInterface;
+		};
+		return oInterface;
+	}
+
 	isA(vTypeName) {
 		return this.getMetadata().isA(vTypeName);
-	};
+	}
 
-	isA(oObject, vTypeName) {
+	static isA(oObject, vTypeName) {
 		return oObject instanceof BaseObject && oObject.isA(vTypeName);
-	};
+	}
 
-	_Interface(oObject, aMethods, _bReturnFacade) {
+	static _Interface(oObject, aMethods, _bReturnFacade) {
 		// if object is null or undefined, return itself
 		if (!oObject) {
 			return oObject;
@@ -46,5 +57,5 @@ class BaseObject {
 				this[sMethodName] = fCreateDelegator(oObject, sMethodName);
 			}
 		}
-	};
+	}
 }

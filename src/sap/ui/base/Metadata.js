@@ -4,7 +4,7 @@ function isFunction(obj) {
     return typeof obj === "function";
 }
 
-class MetaData {
+export class Metadata {
     extend(oClassInfo) {
         this.applySettings(oClassInfo);
         this.afterApplySettings();
